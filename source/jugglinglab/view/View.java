@@ -58,6 +58,17 @@ public class View extends JPanel implements ActionListener {
 	protected void setParent(JFrame p) {
 		this.parent = p;
 	}
+  
+  public void repackParentAndRestart() throws JuggleExceptionUser, JuggleExceptionInternal {
+    if (parent != null)
+      parent.pack();
+    if (subview != null)
+			subview.restartView(this.pat, this.jc);
+  }
+  
+  public View getSubview() {
+    return subview;
+  }
 	
     public void restartView() throws JuggleExceptionUser, JuggleExceptionInternal {
 		if (subview != null)
@@ -278,7 +289,7 @@ public class View extends JPanel implements ActionListener {
                         Animator ja = nv.getAnimator();
                         if (!ja.isAnimInited())
                             break;
-                        ja.writeGIFAnim();
+                        ja.writeGIFAnim(null);
                     }
                     else {
                         new LabelDialog(this, "Not available",

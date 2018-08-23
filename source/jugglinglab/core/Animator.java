@@ -695,14 +695,17 @@ public class Animator extends JPanel implements Runnable {
         killAnimationThread();
     }
 
-    public void writeGIFAnim() {
+    public void writeGIFAnim(String fname) {
         try {
             Class jagw = Class.forName("jugglinglab.core.AnimatorGIFWriter");
             Method setup = jagw.getMethod("setup", new Class[] {Animator.class,
                 jugglinglab.renderer.Renderer.class,
                 jugglinglab.renderer.Renderer.class,
                 Integer.TYPE, Double.TYPE, Long.TYPE});
-            Object gw = jagw.newInstance();
+                
+            Class[] cArg = new Class[1];
+            cArg[0] = String.class;
+            Object gw = jagw.getDeclaredConstructor(cArg).newInstance(fname);
             setup.invoke(gw, new Object[] {this, ren1, ren2, new Integer(num_frames),
                 new Double(sim_interval_secs), new Long(real_interval_millis)});
 

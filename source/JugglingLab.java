@@ -282,8 +282,36 @@ public class JugglingLab extends JApplet {
     // application version starts here
     public static void main(String[] args) {
         try {
-            new JugglingLab();		// to load audio clips
+            JugglingLab jl = new JugglingLab();		// to load audio clips
             new ApplicationWindow("Juggling Lab");
+
+            //if command line argument, open pattern window with it
+            if (args.length > 0) {
+              String p = args[0];
+              int num = Notation.NOTATION_SITESWAP;
+              Notation not = Notation.getNotation(Notation.builtinNotations[num-1]);
+              Notation fnot = not;
+              JMLPattern pat = fnot.getJMLPattern(p);
+              PatternWindow pw = new PatternWindow(pat.getTitle(), pat, new AnimatorPrefs());
+              
+              //if second argument is "gif" - create png file and exit
+              if (args.length > 1) {
+                  if (args[1].equals("gif")) {
+                      View view = pw.getView();
+                      view.setViewMode(1); //public static final int	VIEW_SIMPLE = 1;
+                      view.repackParentAndRestart();
+                      NormalView nv = (NormalView)view.getSubview();
+                      Animator ja = nv.getAnimator();                     
+                      ja.writeGIFAnim(args[0] + ".gif");
+                      //wait until gif saved
+                      while (ja.writingGIF) {
+                        ;
+                      }
+                      System.exit(0);
+                  }
+              }
+            }
+            
         } catch (JuggleExceptionUser jeu) {
             new ErrorDialog(null, jeu.getMessage());
         } catch (JuggleExceptionInternal jei) {

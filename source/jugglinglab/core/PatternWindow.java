@@ -42,9 +42,13 @@ public class PatternWindow extends JFrame implements ActionListener {
     }
 	*/
 
-    protected View view = null;
+  protected View view = null;
 	protected JMenu filemenu = null;
 	protected JMenu viewmenu = null;
+  
+  public View getView() {
+    return view;
+  }
 	
 
     public PatternWindow(String name, JMLPattern pat, AnimatorPrefs jc) throws JuggleExceptionUser, JuggleExceptionInternal {

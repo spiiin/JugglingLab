@@ -53,8 +53,11 @@ public class AnimatorGIFWriter extends Thread {
     double sim_interval_secs;
     long real_interval_millis;
     OutputStream out = null;
+    
+    String fname = null;
 
-    public AnimatorGIFWriter() {
+    public AnimatorGIFWriter(String fname) {
+        this.fname = fname;
         this.setPriority(Thread.MIN_PRIORITY);
     }
 
@@ -116,98 +119,108 @@ public class AnimatorGIFWriter extends Thread {
                 FileOutputStream out = null;
                 ProgressMonitor pm = null;
 
-                int option = PlatformSpecific.getPlatformSpecific().showSaveDialog(ja);
+                int option = 0;
+                File file = null;
+                
+                if (fname == null) {
+                    option = PlatformSpecific.getPlatformSpecific().showSaveDialog(ja);
+                    if (option != JFileChooser.APPROVE_OPTION) {
+                      return;
+                    }
+                    file = PlatformSpecific.getPlatformSpecific().getSelectedFile();
+                }
+                else
+                {
+                    file = new File(fname);
+                }
 
-                if (option == JFileChooser.APPROVE_OPTION) {
-                    if (PlatformSpecific.getPlatformSpecific().getSelectedFile() != null) {
-                        ja.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                        File file = PlatformSpecific.getPlatformSpecific().getSelectedFile();
-                        out = new FileOutputStream(file);
+                if (file != null) {
+                    ja.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    out = new FileOutputStream(file);
 
-                        // Create the object that will actually do the writing
-                        /*  Object gaw = null;
-                        try {
-                            gaw = gawclass.newInstance();
-                        } catch (IllegalAccessException iae) {
-                            throw new JuggleExceptionInternal("Cannot access gifwriter.GIFAnimWriter class (security)");
-                        } catch (InstantiationException ie) {
-                            throw new JuggleExceptionInternal("Could not instantiate gifwriter.GIFAnimWriter object");
-                        }*/
-                        GIFAnimWriter gaw = new GIFAnimWriter();
+                    // Create the object that will actually do the writing
+                    /*  Object gaw = null;
+                    try {
+                        gaw = gawclass.newInstance();
+                    } catch (IllegalAccessException iae) {
+                        throw new JuggleExceptionInternal("Cannot access gifwriter.GIFAnimWriter class (security)");
+                    } catch (InstantiationException ie) {
+                        throw new JuggleExceptionInternal("Could not instantiate gifwriter.GIFAnimWriter object");
+                    }*/
+                    GIFAnimWriter gaw = new GIFAnimWriter();
 
-                        // set black as default drawing color
-                        //   docolormap1.invoke(gaw, new Object[] {Color.black, new Boolean(true)});
-                        // gaw.doColorMap(Color.black, true);
+                    // set black as default drawing color
+                    //   docolormap1.invoke(gaw, new Object[] {Color.black, new Boolean(true)});
+                    // gaw.doColorMap(Color.black, true);
 
-                        Dimension dim = ja.getSize();
-                        int appWidth = dim.width;
-                        int appHeight = dim.height;
-                        Image tempoffscreen = ja.createImage(appWidth, appHeight);
-                        Graphics tempoffg = tempoffscreen.getGraphics();
+                    Dimension dim = ja.getSize();
+                    int appWidth = dim.width;
+                    int appHeight = dim.height;
+                    Image tempoffscreen = ja.createImage(appWidth, appHeight);
+                    Graphics tempoffg = tempoffscreen.getGraphics();
 
 
-                        // writeheader.invoke(gaw, new Object[] {out});
-                        //		gaw.writeHeader(out);
+                    // writeheader.invoke(gaw, new Object[] {out});
+                    //		gaw.writeHeader(out);
 
-                        int[] gifpropnum = new int[pat.getNumberOfPaths()];
-                        for (int i = 0; i < pat.getNumberOfPaths(); i++)
-                            gifpropnum[i] = pat.getPropAssignment(i+1);
-                        int patperiod = pat.getPeriod();
-                        int totalframes = patperiod * num_frames * 2;
-                        int framecount = 0;
+                    int[] gifpropnum = new int[pat.getNumberOfPaths()];
+                    for (int i = 0; i < pat.getNumberOfPaths(); i++)
+                        gifpropnum[i] = pat.getPropAssignment(i+1);
+                    int patperiod = pat.getPeriod();
+                    int totalframes = patperiod * num_frames * 2;
+                    int framecount = 0;
 
-                        pm = new ProgressMonitor(ja, guistrings.getString("Saving_animated_GIF"),
-                                "", 0, totalframes);
-                        boolean canceled = false;
+                    pm = new ProgressMonitor(ja, guistrings.getString("Saving_animated_GIF"),
+                            "", 0, totalframes);
+                    boolean canceled = false;
 
-                        // loop through the individual frames twice, first to build the
-                        // color map and the second to write the GIF frames
-                        for (int pass = 0; pass < 2; pass++) {
-                            if (pass == 1)
-                                gaw.writeHeader(out);
+                    // loop through the individual frames twice, first to build the
+                    // color map and the second to write the GIF frames
+                    for (int pass = 0; pass < 2; pass++) {
+                        if (pass == 1)
+                            gaw.writeHeader(out);
 
-                            for (int i = 0; i < patperiod; i++)  {
-                                double time = pat.getLoopStartTime();
+                        for (int i = 0; i < patperiod; i++)  {
+                            double time = pat.getLoopStartTime();
 
-                                for (int j = 0; j < num_frames; j++) {
-                                    if (pass == 1)
-                                        gaw.writeDelay((int)(real_interval_millis/10), out);
+                            for (int j = 0; j < num_frames; j++) {
+                                if (pass == 1)
+                                    gaw.writeDelay((int)(real_interval_millis/10), out);
 
-                                    if (ren2 != null) {
-                                        this.ren1.drawFrame(time, gifpropnum,
-                                                            tempoffg.create(0,0,dim.width/2,dim.height), ja);
-                                        this.ren2.drawFrame(time, gifpropnum,
-                                                            tempoffg.create(dim.width/2,0,dim.width/2,dim.height), ja);
-                                    } else {
-                                        this.ren1.drawFrame(time, gifpropnum, tempoffg, ja);
-                                    }
-                                    // ren.drawFrame(time, gifpropnum, tempoffg, ja);
+                                if (ren2 != null) {
+                                    this.ren1.drawFrame(time, gifpropnum,
+                                                        tempoffg.create(0,0,dim.width/2,dim.height), ja);
+                                    this.ren2.drawFrame(time, gifpropnum,
+                                                        tempoffg.create(dim.width/2,0,dim.width/2,dim.height), ja);
+                                } else {
+                                    this.ren1.drawFrame(time, gifpropnum, tempoffg, ja);
+                                }
+                                // ren.drawFrame(time, gifpropnum, tempoffg, ja);
 
-                                    if (pass == 0)
-                                        gaw.doColorMap(tempoffscreen);
-                                    else
-                                        gaw.writeGIF(tempoffscreen, out);
+                                if (pass == 0)
+                                    gaw.doColorMap(tempoffscreen);
+                                else
+                                    gaw.writeGIF(tempoffscreen, out);
 
-                                    if (pm != null) {
-                                        framecount++;
-                                        String note = (pass==0 ? guistrings.getString("Message_GIFsave_color_map") :
-                                                guistrings.getString("Message_GIFsave_writing_frame")+" "+(framecount-num_frames)+"/"+num_frames);
-                                        SwingUtilities.invokeLater(new PBUpdater(pm,framecount,note));
-                                        if (pm.isCanceled())
-                                            return;
-                                    }
-
-                                    time += sim_interval_secs;
+                                if (pm != null) {
+                                    framecount++;
+                                    String note = (pass==0 ? guistrings.getString("Message_GIFsave_color_map") :
+                                            guistrings.getString("Message_GIFsave_writing_frame")+" "+(framecount-num_frames)+"/"+num_frames);
+                                    SwingUtilities.invokeLater(new PBUpdater(pm,framecount,note));
+                                    if (pm.isCanceled())
+                                        return;
                                 }
 
-                                ja.advanceProps(gifpropnum);
+                                time += sim_interval_secs;
                             }
-                        }
 
-                        //  writetrailer.invoke(gaw, new Object[] {out});
-                        gaw.writeTrailer(out);
-                        tempoffg.dispose();
+                            ja.advanceProps(gifpropnum);
+                        }
                     }
+
+                    //  writetrailer.invoke(gaw, new Object[] {out});
+                    gaw.writeTrailer(out);
+                    tempoffg.dispose();
                 }
             } catch (FileNotFoundException fnfe) {
                 throw new JuggleExceptionInternal("AnimGIFSave file not found: "+fnfe.getMessage());
